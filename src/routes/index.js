@@ -20,7 +20,7 @@ router.get("/", authenticateToken, async (req, res) => {
 		.query("SELECT * FROM subscriptions WHERE user_id = $id")
 		.all({ id: req.user.id });
 
-	const qs = req.query ? "?" + new URLSearchParams(req.query).toString() : "";
+	const qs = req.query ? `?${new URLSearchParams(req.query).toString()}` : "";
 
 	if (subs.length === 0) {
 		res.redirect(`/r/all${qs}`);
@@ -56,7 +56,7 @@ router.get("/r/:subreddit", authenticateToken, async (req, res) => {
 
 	const [posts, about] = await Promise.all([postsReq, aboutReq]);
 
-	if (query.view == "card" && posts && posts.posts) {
+	if (query.view === "card" && posts && posts.posts) {
 		posts.posts.forEach(unescape_selftext);
 	}
 
@@ -176,7 +176,7 @@ router.get("/post-search", authenticateToken, async (req, res) => {
 				? "no results found"
 				: `showing ${items.length} results`;
 
-		if (req.query.view == "card" && items) {
+		if (req.query.view === "card" && items) {
 			items.forEach(unescape_selftext);
 		}
 
@@ -415,7 +415,7 @@ function unescape_submission(response) {
 
 function unescape_selftext(post) {
 	// If called after getSubmissions
-	if (post.data && post.data.selftext_html) {
+	if (post.data?.selftext_html) {
 		post.data.selftext_html = he.decode(post.data.selftext_html);
 	}
 	// If called after getSubmissionComments
