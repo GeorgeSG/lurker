@@ -401,6 +401,41 @@ router.post("/unsubscribe", authenticateToken, async (req, res) => {
 	}
 });
 
+router.post("/import-reddit-multi", authenticateToken, async (req, res) => {
+	const { multi } = req.body;
+
+	if (!multi || !multi.includes("/r/")) {
+		res.redirect("/subs");
+		return;
+	}
+
+	// expected string in format:
+	// https://www.reddit.com/r/Subreddit1+Subreddit2+Subreddit3/
+	const subs = multi.split("/r/")[1].slice(0, -1).split("+");
+
+	const existingSubscriptions = db
+		.query("SELECT subreddit FROM subscriptions WHERE user_id = $id")
+		.all({ id: req.user.id })
+		.map(({ subreddit }) => subreddit.toLowerCase());
+
+	const newSubs = subs.filter(
+		(s) => !existingSubscriptions.includes(s.toLowerCase()),
+	);
+
+	try {
+		if (newSubs.length > 0) {
+			const placeholders = newSubs.map(() => "($id, ?)").join(", ");
+			const query = `INSERT INTO subscriptions (user_id, subreddit) VALUES ${placeholders}`;
+			db.query(query).run([req.user.id, ...newSubs]);
+		} else {
+		}
+	} catch (err) {
+		console.error("Unable to import subscriptions", err);
+	} finally {
+		res.redirect("/subs");
+	}
+});
+
 module.exports = router;
 
 function unescape_submission(response) {

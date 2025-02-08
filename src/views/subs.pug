@@ -12,16 +12,29 @@ html
       +header(user)
       div.hero
         h1 subscriptions
+
+        if message
+          div.dashboard-error-message
+            | #{message}
+
         p
-          each s in subs 
+          if subs.length === 0
+            | you are not subscribed to any subreddits
+
+          each s in subs
             - var subreddit = s.subreddit
             - var isSubbed = true
             div.sub-title
               h4
-                a(href=`/r/${subreddit}?sort=${sortQuery}&view=${viewQuery}`) 
+                a(href=`/r/${subreddit}?sort=${sortQuery}&view=${viewQuery}`)
                   | r/#{subreddit}
               div#button-container
                 if isSubbed
                   button(onclick=`toggleSub('${subreddit}')` id=`thinger_${subreddit}`) unsubscribe
                 else
                   button(onclick=`toggleSub('${subreddit}')` id=`thinger_${subreddit}`) subscribe
+
+        h2 import from multireddit
+        form(action="/import-reddit-multi" method="post").search-bar
+          input(type="text" name="multi" placeholder="https://www.reddit.com/r/AskReddit+pics/" required).search-input
+          button(type="submit").search-button go
